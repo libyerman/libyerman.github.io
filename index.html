@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Germán Hurtado - SysAdmin & DevOps Engineer</title>
+    <style>
+        /* ESTILO VISUAL (CSS) - TEMA MATRIX / HACKER */
+        body {
+            background-color: #0d1117; /* Fondo GitHub Dark */
+            color: #00ff00; /* Verde Terminal */
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        #terminal {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .command-line {
+            display: flex;
+            align-items: center;
+        }
+        .prompt {
+            color: #bd93f9; /* Morado Drácula */
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        input {
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: inherit;
+            width: 100%;
+            outline: none;
+        }
+        .output {
+            white-space: pre-wrap; /* Mantiene formato y saltos de línea */
+            margin-bottom: 20px;
+            color: #c9d1d9; /* Blanco suave para lectura */
+        }
+        .highlight {
+            color: #e6ff00; /* Amarillo intenso para destacar */
+            font-weight: bold;
+        }
+        .section-title {
+            color: #58a6ff; /* Azul GitHub */
+            font-weight: bold;
+            text-decoration: underline;
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        
+        /* Efecto de parpadeo en el cursor si el input está vacío (opcional visual) */
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div id="terminal">
+        <div id="history">
+            </div>
+        
+        <div class="command-line">
+            <span class="prompt" id="promptLabel">german@linux:~$</span>
+            <input type="text" id="input" autocomplete="off" autofocus>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('input');
+        const history = document.getElementById('history');
+        const promptLabel = document.getElementById('promptLabel');
+
+        // IDIOMA POR DEFECTO: INGLÉS
+        let currentLang = 'en';
+
+        // --- BASE DE DATOS DE CONTENIDO ---
+        const db = {
+            es: {
+                welcome: `
+Bienvenido al sistema de <span class="highlight">Germán Hurtado González</span> v4.0
+Rol detectado: <span class="highlight">Senior SysAdmin & DevOps Enthusiast</span>
+Escribe <span class="highlight">'help'</span> para ver comandos.
+Escribe <span class="highlight">'english'</span> para cambiar idioma.
+                `,
+                notFound: `Comando no encontrado. Escribe 'help'.`,
+                prompt: `german@linux:~$`,
+                commands: {
+                    'sobremi': `
+NOMBRE: Germán Hurtado González
+ROL:    Senior SysAdmin & VoIP Engineer | DevOps Transition
+UBICACIÓN: Sevilla, España
+
+RESUMEN PROFESIONAL:
+Ingeniero de Sistemas Senior con más de 15 años de experiencia. Me defino como un perfil híbrido, combinando la solidez de la administración de sistemas Linux tradicional con la agilidad de las nuevas arquitecturas.
+
+**ENFOQUE ACTUAL:**
+Compagino mi labor como SysAdmin con la profundización práctica en orquestación de contenedores (<span class="highlight">Kubernetes, OpenShift, Docker</span>) y automatización, aplicando estas tecnologías para modernizar infraestructuras.
+
+"De Guadalinex QA a la orquestación en la Nube".
+                    `,
+                    'experiencia': `
+<span class="section-title">--- HISTORIAL PROFESIONAL (Resumen) ---</span>
+
+[2020 - Actualidad] Senior SysAdmin & VoIP Engineer
+> <span class="highlight">Alisys</span>
+- **Modernización:** Despliegue e instalación desde cero de clústeres <span class="highlight">Kubernetes</span> y <span class="highlight">OpenShift (OKD)</span>.
+- **SysAdmin & Scripting:** Administración avanzada de Linux (RHEL/Ubuntu) y automatización con <span class="highlight">Bash/Python/Ansible</span>.
+- **VoIP:** Ingeniería sobre Asterisk/OpenSIPS y seguridad con Sophos/Pfsense.
+
+[2018 - 2020] SysAdmin Linux & VoIP Specialist
+> <span class="highlight">Tier1</span>
+- **Cloud Migration:** Liderazgo en migración de PBX On-Premise a Cloud/CPD remotos.
+- **DevOps:** Uso consolidado de <span class="highlight">Docker</span> para despliegue de servicios y scripts de integración (PHP/Python).
+- **QoS:** Diseño de políticas de calidad de servicio y enrutamiento WAN.
+
+[2013 - 2018] Administrador de Sistemas & Migraciones
+> <span class="highlight">Uno coma seis</span>
+- **Early Adopter:** Despliegue de aplicaciones satélite con <span class="highlight">Docker</span> (2013+).
+- **Networking:** Ingeniería de tráfico y QoS crítico para voz sobre IP.
+- **Migraciones:** Transformación de infraestructuras físicas a virtuales (Elastix/FreePBX).
+
+<span class="section-title">--- EXPERIENCIA PREVIA ---</span>
+
+[2010 - 2013] MP Sistemas
+- Admin de Correo (Zimbra/Postfix), Virtualización (VMware) y Redes.
+
+[2008 - 2010] INGENYCOM
+- **Linux QA:** Control de calidad para <span class="highlight">Guadalinex V5</span>.
+- Desarrollo Web LAMP (Linux, Apache, MySQL, PHP).
+
+[2007 - 2008] Cofiman
+- Core Services: Despliegue manual de LDAP, Bind (DNS), DHCP y Samba.
+- **Linux QA:** Control de calidad para <span class="highlight">Guadalinex V4</span>.
+
+[2004 - 2007] CASSFA
+- Desarrollo PHP/JS y Soporte Asterisk a gran escala (Guadalinfo).
+- **Linux QA:** Validación de <span class="highlight">Guadalinex V3</span>.
+                    `,
+                    'skills': `
+<span class="section-title">STACK TECNOLÓGICO (60% SysAdmin / 40% Cloud)</span>
+
+[CORE SYSADMIN & SCRIPTING]
+- **OS:** Linux (Debian, RHEL, CentOS, Ubuntu) - Expert Level.
+- **Scripting:** Bash, Python, Perl, PHP.
+- **Servicios:** Apache, Nginx, MySQL, Postfix, LDAP, Bind, Samba.
+
+[CLOUD NATIVE & DEVOPS]
+- **Orquestación:** Kubernetes, OpenShift (OKD), Rancher.
+- **Contenedores:** Docker (Experiencia desde 2013).
+- **IaC:** Ansible.
+
+[VOIP & TELECOM]
+- **Motores:** Asterisk, OpenSIPS, FreePBX, Elastix.
+- **Protocolos:** SIP, IAX2, RTP, WebRTC.
+
+[NETWORKING & SEGURIDAD]
+- **Equipamiento:** Fortinet (NSE4), Mikrotik (MTCNA), Cisco, Sophos.
+- **Conceptos:** QoS, VLANs, VPN (IPSec/OpenVPN), IPTables/Netfilter.
+                    `,
+                    'formacion': `
+<span class="section-title">CERTIFICACIONES OFICIALES</span>
+- <span class="highlight">dCAP</span> - Digium Certified Asterisk Professional
+- <span class="highlight">NSE 4</span> - Fortinet Network Security Expert
+- <span class="highlight">MTCNA</span> - MikroTik Certified Network Associate
+
+<span class="section-title">FORMACIÓN REGLADA</span>
+- Ciclo Formativo Grado Superior: Admin. de Sistemas Informáticos (2003)
+                    `,
+                    'contacto': `
+Email:    german@sevilla.es
+GitHub:   <a href="https://github.com/libyerman" target="_blank">github.com/libyerman</a>
+LinkedIn: <a href="https://linkedin.com/in/germanhurtadogonzalez" target="_blank">linkedin.com/in/germanhurtadogonzalez</a>
+                    `,
+                    'help': `
+Comandos disponibles:
+  <span class="highlight">sobremi</span>      - Perfil y objetivos
+  <span class="highlight">experiencia</span>  - Trayectoria detallada
+  <span class="highlight">skills</span>       - Habilidades técnicas
+  <span class="highlight">formacion</span>    - Títulos y Certificaciones
+  <span class="highlight">contacto</span>     - Email y Redes
+  <span class="highlight">english</span>      - Switch to English
+  <span class="highlight">clear</span>        - Limpiar pantalla
+                    `
+                }
+            },
+            en: {
+                welcome: `
+Welcome to <span class="highlight">Germán Hurtado González</span> system v4.0
+Role detected: <span class="highlight">Senior SysAdmin & VoIP Engineer | DevOps Focus</span>
+Type <span class="highlight">'help'</span> to see commands.
+Type <span class="highlight">'espanol'</span> to switch language.
+                `,
+                notFound: `Command not found. Type 'help'.`,
+                prompt: `german@linux:~$`,
+                commands: {
+                    'about': `
+NAME:     Germán Hurtado González
+ROLE:     Senior SysAdmin & VoIP Engineer | Expanding horizons in Cloud Native
+LOCATION: Seville, Spain
+
+PROFESSIONAL SUMMARY:
+Senior Systems Engineer with over 15 years of experience. I define myself as a hybrid technical profile, combining the reliability of traditional Linux system administration with the agility of modern architectures.
+
+**PROFESSIONAL FOCUS:**
+Currently focusing my technical interest on <span class="highlight">infrastructure modernization</span>. I combine my work as a SysAdmin with deep practical learning in container orchestration (<span class="highlight">Kubernetes, OpenShift, Docker</span>) and automation.
+
+*Note: Currently holding a technical reading proficiency in English, actively working on improving conversational skills.*
+                    `,
+                    'experience': `
+<span class="section-title">--- PROFESSIONAL HISTORY (Highlights) ---</span>
+
+[2020 - Present] Senior SysAdmin & VoIP Engineer
+> <span class="highlight">Alisys</span>
+- **Modernization:** Active participation in deployment and installation of <span class="highlight">Kubernetes</span> and <span class="highlight">OpenShift (OKD)</span> clusters.
+- **SysAdmin & Scripting:** Advanced Linux management (RHEL/Ubuntu) and automation with <span class="highlight">Bash/Python/Ansible</span>.
+- **VoIP:** Engineering on Asterisk/OpenSIPS and security with Sophos/Pfsense.
+
+[2018 - 2020] SysAdmin Linux & VoIP Specialist
+> <span class="highlight">Tier1</span>
+- **Cloud Migration:** Led migration projects from On-Premise PBX to remote Data Centers/Cloud.
+- **DevOps:** Consolidated use of <span class="highlight">Docker</span> for service deployment and integration scripts (PHP/Python).
+- **QoS:** Critical network optimization and WAN routing design.
+
+[2013 - 2018] Systems Administrator & Migrations
+> <span class="highlight">Uno coma seis</span>
+- **Early Adopter:** Deployment of satellite apps using <span class="highlight">Docker</span> (since 2013).
+- **Networking:** Traffic Engineering and advanced QoS for VoIP.
+- **Migrations:** Transformation of physical infrastructures to virtual ones (Elastix/FreePBX).
+
+<span class="section-title">--- PREVIOUS EXPERIENCE ---</span>
+
+[2010 - 2013] MP Sistemas
+- Mail Infrastructure (Zimbra/Postfix), Virtualization (VMware), and Networking.
+
+[2008 - 2010] INGENYCOM
+- **Linux QA:** Quality Assurance for <span class="highlight">Guadalinex V5</span>.
+- LAMP Stack Development (Linux, Apache, MySQL, PHP).
+
+[2007 - 2008] Cofiman
+- Core Services: Manual deployment of LDAP, Bind (DNS), DHCP, and Samba.
+- **Linux QA:** Quality Assurance for <span class="highlight">Guadalinex V4</span>.
+
+[2004 - 2007] CASSFA
+- PHP/JS Development and Large Scale Asterisk Support (Guadalinfo).
+- **Linux QA:** Validation of <span class="highlight">Guadalinex V3</span>.
+                    `,
+                    'skills': `
+<span class="section-title">TECH STACK (60% SysAdmin / 40% Cloud)</span>
+
+[CORE SYSADMIN & SCRIPTING]
+- **OS:** Linux (Debian, RHEL, CentOS, Ubuntu) - Expert Level.
+- **Scripting:** Bash, Python, Perl, PHP.
+- **Services:** Apache, Nginx, MySQL, Postfix, LDAP, Bind, Samba.
+
+[CLOUD NATIVE & DEVOPS]
+- **Orchestration:** Kubernetes, OpenShift (OKD), Rancher.
+- **Containers:** Docker (Experience since 2013).
+- **IaC:** Ansible.
+
+[VOIP & TELECOM]
+- **Engines:** Asterisk, OpenSIPS, FreePBX, Elastix.
+- **Protocols:** SIP, IAX2, RTP, WebRTC.
+
+[NETWORKING & SECURITY]
+- **Gear:** Fortinet (NSE4), Mikrotik (MTCNA), Cisco, Sophos.
+- **Concepts:** QoS, VLANs, VPN (IPSec/OpenVPN), IPTables/Netfilter.
+                    `,
+                    'education': `
+<span class="section-title">OFFICIAL CERTIFICATIONS</span>
+- <span class="highlight">dCAP</span> - Digium Certified Asterisk Professional
+- <span class="highlight">NSE 4</span> - Fortinet Network Security Expert
+- <span class="highlight">MTCNA</span> - MikroTik Certified Network Associate
+
+<span class="section-title">FORMAL EDUCATION</span>
+- Higher Technician in Computer Systems Administration (2003)
+                    `,
+                    'contact': `
+Email:    german@sevilla.es
+GitHub:   <a href="https://github.com/libyerman" target="_blank">github.com/libyerman</a>
+LinkedIn: <a href="https://linkedin.com/in/germanhurtadogonzalez" target="_blank">linkedin.com/in/germanhurtadogonzalez</a>
+                    `,
+                    'help': `
+Available Commands:
+  <span class="highlight">about</span>       - Profile and objectives
+  <span class="highlight">experience</span>  - Detailed career history
+  <span class="highlight">skills</span>      - Tech stack
+  <span class="highlight">education</span>   - Degrees and Certs
+  <span class="highlight">contact</span>     - Email and Socials
+  <span class="highlight">espanol</span>     - Cambiar a Español
+  <span class="highlight">clear</span>       - Clear screen
+                    `
+                }
+            }
+        };
+
+        // INICIALIZACIÓN
+        function init() {
+            const welcomeMsg = document.createElement('div');
+            welcomeMsg.className = 'output';
+            welcomeMsg.innerHTML = db[currentLang].welcome;
+            history.appendChild(welcomeMsg);
+            
+            promptLabel.innerText = db[currentLang].prompt;
+        }
+        init();
+
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const command = input.value.trim().toLowerCase();
+                processCommand(command);
+                input.value = '';
+            }
+        });
+
+        function processCommand(cmd) {
+            // Mostrar línea de comando
+            const cmdLine = document.createElement('div');
+            cmdLine.innerHTML = `<span class="prompt">${db[currentLang].prompt}</span> ${cmd}`;
+            history.appendChild(cmdLine);
+
+            const response = document.createElement('div');
+            response.className = 'output';
+
+            // Lógica de comandos
+            if (cmd === 'english') {
+                currentLang = 'en';
+                response.innerHTML = 'Language switched to English. Type <span class="highlight">help</span> to see commands.';
+                promptLabel.innerText = db['en'].prompt;
+            } else if (cmd === 'espanol' || cmd === 'español') {
+                currentLang = 'es';
+                response.innerHTML = 'Idioma cambiado a Español. Escribe <span class="highlight">help</span> para ver comandos.';
+                promptLabel.innerText = db['es'].prompt;
+            } 
+            else if (cmd === 'clear') {
+                history.innerHTML = '';
+                response.remove();
+            } else if (db[currentLang].commands[cmd]) {
+                response.innerHTML = db[currentLang].commands[cmd];
+            } else {
+                response.innerText = db[currentLang].notFound;
+            }
+
+            if (cmd !== 'clear') {
+                history.appendChild(response);
+            }
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        document.addEventListener('click', () => input.focus());
+    </script>
+</body>
+</html>
